@@ -1,0 +1,81 @@
+version: '3'
+services:
+  opensearch-node1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: opensearch:custom
+    container_name: opensearch-node1
+    environment:
+      - cluster.name=opensearch-cluster # Name the cluster
+      - node.name=opensearch-node1 # Name the node that will run in this container
+      - discovery.seed_hosts=opensearch-node1 # Nodes to look for when discovering the cluster
+      # - cluster.initial_cluster_manager_nodes=opensearch-node1 # Nodes eligibile to serve as cluster manager
+      - bootstrap.memory_lock=true # Disable JVM heap memory swapping
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" # Set min and max JVM heap sizes to at least 50% of system RAM
+      # - "DISABLE_INSTALL_DEMO_CONFIG=true" # Prevents execution of bundled demo script which installs demo certificates and security configurations to OpenSearch
+      # - "DISABLE_SECURITY_PLUGIN=true" # Disables Security plugin
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Toanh@2024
+    ulimits:
+      memlock:
+        soft: -1 # Set memlock to unlimited (no soft or hard limit)
+        hard: -1
+      nofile:
+        soft: 65536 # Maximum number of open files for the opensearch user - set to at least 65536
+        hard: 65536
+    volumes:
+      - opensearch-data1:/usr/share/opensearch/data # Creates volume called opensearch-data1 and mounts it to the container
+      # - ./opensearch/configs/opensearch.yml:/usr/share/opensearch/config/opensearch.yml
+      # - ./opensearch/configs/config.yml:/usr/share/opensearch/config/opensearch-security/config.yml
+      # - ./opensearch/configs/roles.yml:/usr/share/opensearch/config/opensearch-security/roles.yml
+      # - ./opensearch/configs/roles_maping.yml:/usr/share/opensearch/config/opensearch-security/roles_maping.yml
+      # - ./opensearch/certs/node.pem:/usr/share/opensearch/config/node.pem
+      # - ./opensearch/certs/node-key.pem:/usr/share/opensearch/config/node-key.pem
+      # - ./opensearch/certs/root-ca.pem:/usr/share/opensearch/config/root-ca.pem  
+    ports:
+      - 9200:9200 # REST API
+      - 9600:9600 # Performance Analyzer
+    networks:
+      - opensearch-net # All of the containers will join the same Docker bridge network
+    # command: /bin/sh -c "while sleep 1000; do :; done"
+    # user: "opensearch"
+    # command: /bin/sh -c "chown -R opensearch:opensearch /usr/share/opensearch/certs/ && cd /usr/share/opensearch/certs && ls -l"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s --cacert /usr/share/opensearch/config/root-ca.pem https://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  # busybox:
+  #   image: busybox:latest
+  #   container_name: my-busybox
+  #   volumes:
+
+  #     - ./opensearch/certs:/usr/share/opensearch/certs
+  #   command: /bin/sh -c "while sleep 1000; do :; done"
+
+  opensearch-dashboards:
+    image: opensearch-dashboards:custom
+    container_name: opensearch-dashboards
+    ports:
+      - 5601:5601 # Map host port 5601 to container port 5601
+    expose:
+      - "5601" # Expose port 5601 for web access to OpenSearch Dashboards
+    environment:
+      - 'OPENSEARCH_HOSTS=["https://opensearch-node1:9200"]'
+      # - "DISABLE_SECURITY_DASHBOARDS_PLUGIN=true" # disables security dashboards plugin in OpenSearch Dashboards
+    networks:
+      - opensearch-net
+    build:
+      context: .
+      dockerfile: opensearch_dashboards.Dockerfile    
+    # volumes:
+    #   - ./opensearch_dashboards/configs/opensearch_dashboards.yml:/usr/share/opensearch_dashboards/config/opensearch_dashboards.yml
+
+
+
+
+volumes:
+  opensearch-data1:
+
+networks:
+  opensearch-net:
