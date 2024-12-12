@@ -1,0 +1,35 @@
+# config/opensearch-security/roles_mapping.yml
+_meta:
+  type: "rolesmapping"
+  config_version: 2
+
+admin_role:
+  users:
+    - "admin"
+  backend_roles:
+    - "admin"
+
+# jwt_role:
+#   users:
+#     - "*"
+#   backend_roles:
+#     - "*"
+
+jwt_user_role:
+  users:
+    - "*"
+  backend_roles:
+    - "*"
+
+jwt_admin_role:
+  users:
+    - "*"
+  backend_roles:
+    - "*"
+
+kibana_server_role:
+  users:
+    - "kibanaserver"
+  backend_roles:
+    - "kibana_server"
+    - "admin"

@@ -1,0 +1,33 @@
+# config/opensearch-security/action_groups.yml
+_meta:
+  type: "actiongroups"
+  config_version: 2
+
+ALL:
+  type: "composite"
+  allowed_actions:
+    - "*"
+
+MANAGE:
+  type: "composite"
+  allowed_actions:
+    - "indices:manage/*"
+
+WRITE:
+  type: "composite"
+  allowed_actions:
+    - "indices:data/write*"
+    - "indices:admin/mapping/put"
+
+READ:
+  type: "composite"
+  allowed_actions:
+    - "indices:data/read*"
+    - "indices:admin/mappings/get*"
+
+SEARCH:
+  type: "composite"
+  allowed_actions:
+    - "indices:data/read/search*"
+    - "indices:data/read/msearch*"
+    - "SUGGEST"
